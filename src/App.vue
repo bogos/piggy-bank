@@ -1,23 +1,21 @@
 <template>
   <div id="app">
-    <div class="container">
-      <WalletManager />
+    <div class="container"> 
+      <div>
+        <Navigation />
+        <router-view/>
+      </div>
     </div>
   </div>
-
 </template>
 
 <script>
-// import AddTodo from "./components/AddTodo.vue";
-// import Todos from "./components/Todos.vue";
-import WalletManager from "./components/WalletManager.vue";
+import Navigation from './components/Navigation.vue';
 
 export default {
   name: 'App',
   components: {
-    // Todos,
-    // AddTodo,
-    WalletManager
+    Navigation,
   }
 
 }

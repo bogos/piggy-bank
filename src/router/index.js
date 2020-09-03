@@ -1,13 +1,17 @@
 import Vue from 'vue';
 import Router from 'vue-router';
 
-Vue.use(Router)
+import WalletManager from '../components/WalletManager';
+
+Vue.use(Router);
 
 export default new Router({
- routes: [
-    {
-        path: '/',
-        name: 'todo-list'
-    },
- ]
+    mode: 'history',
+    routes: [
+        {
+            path: '/',
+            name: 'WalletManager',
+            component: WalletManager
+        },
+    ]
 })
