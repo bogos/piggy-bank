@@ -140,5 +140,4 @@ export default new Vuex.Store({
         CREATE_WALLET: (state, wallet) => (state.wallets.unshift(wallet)),
         DEPOSIT_ETHERS: (state, wallet) => (state.wallet = wallet),
     },
-
 });
