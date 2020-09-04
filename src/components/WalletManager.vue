@@ -26,8 +26,8 @@
                     <div class="card-description">Balance</div>
                     <div class="card-balance">${{ 0 }}</div>
                     <div class="card-buttons-container">
-                        <button @click="openModal(wallet)" :class="'card-buttons ' + 'bnt-color-'+removeZeroMod(index)"> Send to </button>
-                        <button @click="openModal(wallet)" :class="'card-buttons ' + 'bnt-color-'+removeZeroMod(index)" > Withdraw </button>
+                        <button @click="openModal(wallet, index, getOperationType.DEPOSIT)" :class="'card-buttons ' + 'bnt-color-'+removeZeroMod(index)"> Deposit </button>
+                        <button @click="openModal(wallet, index, getOperationType.WITHDRAW)" :class="'card-buttons ' + 'bnt-color-'+removeZeroMod(index)" > Withdraw </button>
                     </div>
                 </div>
             </div>
@@ -53,14 +53,24 @@ export default {
             'createWallet'
         ]),
 
-        openModal(wallet) {
-            this.$store.dispatch("setWalletAddress", wallet);
+        openModal(wallet, index, type) {
+
+            const payload = {
+                id: index,
+                walletAddress: wallet,
+                typeOperation: type
+            };
+
+            console.log("MODAL", payload);
+
             this.$store.dispatch("openModal");
+            this.$store.dispatch("setWalletInfo", payload);
         },
         
         // Remove, use Id from card to evaluate the color or consider select and save a card color.
         removeZeroMod(index) {
-            return (((index + 4 - 1))  % 4 + 1);
+            const numCardColors = 4;
+            return (((index + numCardColors - 1))  % numCardColors + 1);
         }
     },
 
@@ -68,6 +78,7 @@ export default {
         ...mapGetters([
             'getAccount',
             'getAllWallets',
+            'getOperationType'
         ]),
     },
 

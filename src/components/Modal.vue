@@ -3,19 +3,43 @@
         <div class="modal-background"></div>
         <div class="modal-container">
             <div class="modal-card">
-                <div class="modal-card-content">
-                    
-                    <div class="close-btn" @click="closeModal($event)"> X </div>
-                    <label class="modal-card-description">From</label>
+
+                <div v-if="this.$store.state.walletInfo.typeOperation == getOperationType.DEPOSIT"
+                     class="modal-card-content">
+                    <div class="close-btn" @click="closeModal"> X </div>
+
+                    <h1 style="text-align:center"> Deposit in my Wallet </h1>
+                    <label class="modal-card-description">Wallet Address</label>
                     <div class="modal-card-address"> {{ this.$store.state.selectedWalletAddres }}</div>
 
-                    <label class="modal-card-description">To </label>
-                    <input type="text" class="modal-card-input"/>
+                    <!-- <label class="modal-card-description">To </label>
+                    <input type="text" class="modal-card-input"  v-model="transaction.to"/> -->
 
                     <label class="modal-card-description">Amount </label>
-                    <input type="text" class="modal-card-input" />
+                    <input type="text" class="modal-card-input"  v-model.number="value" @keypress="onlyNumber"/>
+
+                    <label v-if="errorInput" class="error-label">Please enter valid values</label>
                     
-                    <button class="modal-card-btn">Send</button>
+                    <button @click="depositEthers" class="modal-card-btn">Deposit</button>
+                </div>
+
+                <div v-if="this.$store.state.walletInfo.typeOperation == getOperationType.WITHDRAW" 
+                    class="modal-card-content">
+                   <div class="close-btn" @click="closeModal"> X </div>
+
+                    <h1 style="text-align:center"> Withdraw from my Wallet </h1>
+                    <label class="modal-card-description">My Address</label>
+                    <div class="modal-card-address"> {{ getAccount }}</div>
+
+                    <!-- <label class="modal-card-description">To </label>
+                    <input type="text" class="modal-card-input"  v-model="transaction.to"/> -->
+
+                    <label class="modal-card-description">Amount </label>
+                    <input type="text" class="modal-card-input"  v-model.number="value" @keypress="onlyNumber"/>
+
+                    <label v-if="errorInput" class="error-label">Please enter valid values</label>
+                    
+                    <button @click="withDrawEthers" class="modal-card-btn">Withdraw</button>
                 </div>
             </div>
         </div>
@@ -23,27 +47,59 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
+
 export default {
     name: "Modal",
 
     data() {
          return{
-            transaction: {
-               to: '',
-               value: '',
-            },
+            value: '',
             successMessage: '',
-            errorMessage: ''
+            errorMessage: '',
+            errorInput: false
          }
     },
 
     methods: {
-        // sendEther(input) {
-        //     this.$store.dispatch("depositEthers", input);
-        // },
+        depositEthers() {
+            if(isNaN(this.value)) {
+                this.errorInput = true;
+                return;
+            } 
+
+            const payload = {
+                to: this.$store.state.walletInfo.walletAddress,
+                value: this.value
+            };
+
+            this.$store.dispatch("depositEthers", payload);
+            this.error = false;
+        },
+
+        withDrawEthers() {
+
+            var payload = {
+                ...this.$store.state.walletInfo,
+                value : this.value
+            }
+
+            this.$store.dispatch("withdrawEthers", payload);
+        },
+
         closeModal() {
             this.$store.dispatch("closeModal");
+        },
+        onlyNumber ($event) {
+            let keyCode = ($event.keyCode ? $event.keyCode : $event.which);
+            if ((keyCode < 48 || keyCode > 57) && keyCode !== 46) {
+                $event.preventDefault();
+            }
         }
+    },
+
+    computed: {
+        ...mapGetters(['getOperationType', 'getAccount'])
     }
 }
 </script>
@@ -147,6 +203,13 @@ export default {
         &:hover{
             background-color: darken($modal-background-color, 40%);
         }
+    }
+
+    .error-label{
+        text-align: center;
+        color: red;
+        font-weight: 300;
+        font-size: 14px;
     }
 
 </style>
