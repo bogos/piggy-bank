@@ -36,12 +36,10 @@ export default {
     methods: {
         async sendEmail() {
 
-            // let sendEmail = "https://us-central1-dsbuilder-50bf4.cloudfunctions.net/sendEmail";
-            // let sendEmailAlert = "https://us-central1-dsbuilder-50bf4.cloudfunctions.net/sendEmailAlert";
             let sendEmailNotification ="https://us-central1-dsbuilder-50bf4.cloudfunctions.net/sendEmailNotification";
-
             const response = await axios.post(sendEmailNotification, this.userData);
             console.log("RESPONSE", response);
+            
         }
     }
 }

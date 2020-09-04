@@ -21,15 +21,46 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
+  $background-color: #f7f7f7;
+
+  @font-face {
+    font-family: 'Gotham';
+    src: url('./assets/fonts/GothamBold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+  }
+    
+  @font-face {
+    font-family: 'Gotham';
+    src: url('./assets/fonts/GothamMedium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+  }
+
+  @font-face {
+    font-family: 'Gotham';
+    src: url('./assets/fonts/GothamBook.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+  }
+
+  @font-face {
+    font-family: 'Gotham';
+    src: url('./assets/fonts/GothamLight.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+  }
+
   html, body, #app{
     min-height: 100%;
   }
 
   body {
-    font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
+    font-family: "Gotham", sans-serif;
     line-height: 1.6;
-    background: #e8f7f0;
+    font-weight: 300;
+    background: $background-color;
   }
 
   .container {
