@@ -13,8 +13,6 @@
 </template>
 
 <script>
-// import firebase from 'firebase';
-// import fc from '../firebaseInit';
 import axios from 'axios';
 
 export default {
@@ -35,11 +33,9 @@ export default {
     },
     methods: {
         async sendEmail() {
-
             let sendEmailNotification ="https://us-central1-dsbuilder-50bf4.cloudfunctions.net/sendEmailNotification";
             const response = await axios.post(sendEmailNotification, this.userData);
             console.log("RESPONSE", response);
-            
         }
     }
 }

@@ -12,9 +12,6 @@
                     <label class="modal-card-description">Wallet Address</label>
                     <div class="modal-card-address"> {{ this.$store.state.selectedWalletAddres }}</div>
 
-                    <!-- <label class="modal-card-description">To </label>
-                    <input type="text" class="modal-card-input"  v-model="transaction.to"/> -->
-
                     <label class="modal-card-description">Amount </label>
                     <input type="text" class="modal-card-input"  v-model.number="value" @keypress="onlyNumber"/>
 
@@ -30,9 +27,6 @@
                     <h1 style="text-align:center"> Withdraw from my Wallet </h1>
                     <label class="modal-card-description">My Address</label>
                     <div class="modal-card-address"> {{ getAccount }}</div>
-
-                    <!-- <label class="modal-card-description">To </label>
-                    <input type="text" class="modal-card-input"  v-model="transaction.to"/> -->
 
                     <label class="modal-card-description">Amount </label>
                     <input type="text" class="modal-card-input"  v-model.number="value" @keypress="onlyNumber"/>
@@ -74,17 +68,19 @@ export default {
             };
 
             this.$store.dispatch("depositEthers", payload);
+            this.$store.dispatch("closeModal");
             this.error = false;
         },
 
         withDrawEthers() {
 
             var payload = {
-                ...this.$store.state.walletInfo,
+                ...this.$store.state.walletInfo.walletAddress,
                 value : this.value
             }
 
             this.$store.dispatch("withdrawEthers", payload);
+            this.$store.dispatch("closeModal");
         },
 
         closeModal() {

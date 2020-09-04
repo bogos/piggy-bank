@@ -17,7 +17,7 @@ export default new Vuex.Store({
     state:{
         account: "",
         contract: {},
-        deployedContractAddress: "0x3c0BCcC1c37F6633D71379E6D18145F1aE5971e2",
+        deployedContractAddress: "0xf986f5bE8c5782cf29243329208372a2aa196e5C",
         isOpenModal: false,
         numberWallets: 0,
         
@@ -105,8 +105,20 @@ export default new Vuex.Store({
 
             let wallets = [];
             for(let i = 0; i < state.numberWallets; i++) {
-                let response = await state.contract.methods.wallets(state.account[0], i).call();            
-                wallets.push(response)
+                
+                let id = i;
+                let walletAddressFunc = state.contract.methods.wallets(state.account[0], i).call();            
+                let balanceFunc = state.contract.methods.balanceWallet(i).call();
+
+                const [walletAddress, balance] = await Promise.all([walletAddressFunc, balanceFunc]);
+
+                let walletData = {
+                    id,
+                    walletAddress,
+                    balance: state.web3.utils.fromWei(`${balance}`, "ether")
+                };
+
+                wallets.push(walletData)
             }
             console.log("SET_WALLETS", wallets);
             commit("SET_WALLETS", wallets);
@@ -117,8 +129,12 @@ export default new Vuex.Store({
             try {
                 let wallet = await state.contract.methods.createPiggyWallet().send({from: state.account[0]})
                 .on('receipt', (receipt) => {
-                    let contractAddress = receipt.events.WalletCreated.returnValues._address;
-                        commit("CREATE_WALLET", contractAddress);
+                        const walletInfo = {
+                            walletAddress: receipt.events.WalletCreated.returnValues._address,
+                            id: this.state.wallets.length + 1,
+                            balance: 0,
+                        }
+                        commit("CREATE_WALLET", walletInfo);
                     }
                 );
                 
@@ -128,30 +144,28 @@ export default new Vuex.Store({
             }
         },
 
-        async depositEthers({ state }, payload) {
+        async depositEthers({ state, dispatch}, payload) {
             
             try {
                 const {to, value} = payload;
-                console.log("DEPOSIT", payload);
-                let contractAddress = await new state.web3.eth.Contract(PiggyWalletABI, to);
+                let contractAddress = await new state.web3.eth.Contract(PiggyWalletABI, to.walletAddress);
                 let weiValue = state.web3.utils.toWei(`${value}`, "ether");
                 let receipt = await contractAddress.methods.deposit().send({from: state.account[0], value: weiValue});
+                dispatch('setAllWallets');
                 console.log("DEPOSIT_ETHERS", receipt);
             } catch (err) {
                 console.log(err);
             }
         },
 
-        async withdrawEthers({ state }, payload) {
+        async withdrawEthers({ state, dispatch }, payload) {
             try {
                 
-                const {id, walletAddress, value} = payload;
-                
-                console.log("PAYLOAD", payload);
-                console.log("ADDRESS", state.deployedContractAddress)
-                let contractAddress = await new state.web3.eth.Contract(PiggyManagerABI, state.deployedContractAddress);
+                const {walletAddress, value} = payload;
+                let contractAddress = await new state.web3.eth.Contract(PiggyWalletABI, walletAddress);
                 let weiValue = state.web3.utils.toWei(`${value}`, "ether");
-                let receipt = await contractAddress.methods.moveEthers(id, walletAddress, weiValue).send({from: state.account[0], value: weiValue});
+                let receipt = await contractAddress.methods.sendEther(state.account[0], weiValue).send({from: state.account[0]});
+                dispatch('setAllWallets');
                 console.log("WITHDRAW_ETHERS", receipt);
             } catch (err) {
                 console.log(err);
@@ -189,8 +203,6 @@ export default new Vuex.Store({
         SET_NUMBER_WALLETS: (state, numberWallets) => (state.numberWallets = numberWallets),
         CREATE_WALLET: (state, wallet) => (state.wallets.unshift(wallet)),
         SET_WALLET_INFO: (state, walletInfo) => (state.walletInfo = walletInfo),
-        // DEPOSIT_ETHERS: (state, wallet) => (state.wallet = wallet),
-        // WITHDRAW_ETHERS: (state, wallet) => (state.wa)
 
         OPEN_MODAL: (state) => (state.isOpenModal = true),
         CLOSE_MODAL: (state) => (state.isOpenModal = false),

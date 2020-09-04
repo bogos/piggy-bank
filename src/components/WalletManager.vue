@@ -14,20 +14,20 @@
 
             <div class="card-container">
                 <div 
-                    v-for="(wallet, index) in getAllWallets" 
-                    v-bind:key="index" 
-                    :class="'card-item ' + 'card-color-'+removeZeroMod(index)"
+                    v-for="wallet in getAllWallets" 
+                    v-bind:key="wallet.id" 
+                    :class="'card-item ' + 'card-color-'+removeZeroMod(wallet.id)"
                 > 
-                    <div :class="'card-eth-logo ' + 'bnt-color-'+removeZeroMod(index)">
+                    <div :class="'card-eth-logo ' + 'bnt-color-'+removeZeroMod(wallet.id)">
                         <img src="../assets/images/ethereum.png"/>
                     </div>
                     <div class="card-description">Address</div>
-                    <div class="card-address">{{ wallet }}</div>
+                    <div class="card-address">{{ wallet.walletAddress }}</div>
                     <div class="card-description">Balance</div>
-                    <div class="card-balance">${{ 0 }}</div>
+                    <div class="card-balance">ETH {{ wallet.balance }}</div>
                     <div class="card-buttons-container">
-                        <button @click="openModal(wallet, index, getOperationType.DEPOSIT)" :class="'card-buttons ' + 'bnt-color-'+removeZeroMod(index)"> Deposit </button>
-                        <button @click="openModal(wallet, index, getOperationType.WITHDRAW)" :class="'card-buttons ' + 'bnt-color-'+removeZeroMod(index)" > Withdraw </button>
+                        <button @click="openModal(wallet, wallet.id, getOperationType.DEPOSIT)" :class="'card-buttons ' + 'bnt-color-'+removeZeroMod(wallet.id)"> Deposit </button>
+                        <button @click="openModal(wallet, wallet.id, getOperationType.WITHDRAW)" :class="'card-buttons ' + 'bnt-color-'+removeZeroMod(wallet.id)" > Withdraw </button>
                     </div>
                 </div>
             </div>
@@ -109,7 +109,7 @@ export default {
     $card-button-color-4: #1cd389;
     
     .wallet-container {
-        padding: 0 5rem;
+        padding: 0 5rem 20px 5rem;
     }
     
     .wallet-welcome {
