@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <Modal v-if="this.$store.state.isOpenModal"/>
     <div class="container"> 
       <div>
         <Navigation />
@@ -11,13 +12,14 @@
 
 <script>
 import Navigation from './components/Navigation.vue';
+import Modal from './components/Modal';
 
 export default {
   name: 'App',
   components: {
     Navigation,
+    Modal
   }
-
 }
 </script>
 

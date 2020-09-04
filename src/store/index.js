@@ -21,11 +21,13 @@ export default new Vuex.Store({
         wallets: [],
         numberWallets: 0,
         account: "",
+        isOpenModal: false,
+        selectedWalletAddres: ""
     },
 
     getters:{
         getAccount: (state) => {
-            return state.account;
+            return state.account[0];
         },
         getAllWallets: (state) => {
             return state.wallets;
@@ -128,7 +130,21 @@ export default new Vuex.Store({
             let receipt = await contractAddress.methods.deposit().send({from: state.account[0], value});
 
             console.log("DEPOSIT_ETHERS", receipt);
+        },
+
+        // TODO: Separate methods by use
+        openModal({ commit }) {
+            commit("OPEN_MODAL");
+        },
+
+        closeModal({ commit }) {
+            commit("CLOSE_MODAL");
+        },
+
+        setWalletAddress({ commit }, payload) {
+            commit("SET_WALLET_ADDRESS", payload);
         }
+
     },
 
     mutations: {
@@ -139,5 +155,10 @@ export default new Vuex.Store({
         SET_NUMBER_WALLETS: (state, numberWallets) => (state.numberWallets = numberWallets),
         CREATE_WALLET: (state, wallet) => (state.wallets.unshift(wallet)),
         DEPOSIT_ETHERS: (state, wallet) => (state.wallet = wallet),
+
+        OPEN_MODAL: (state) => (state.isOpenModal = true),
+        CLOSE_MODAL: (state) => (state.isOpenModal = false),
+
+        SET_WALLET_ADDRESS: (state, walletAddress) => (state.selectedWalletAddres = walletAddress)
     },
 });
