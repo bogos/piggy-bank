@@ -32,3 +32,4 @@ functions/.env
 functions/typings/
 functions/node_modules/
 functions/.env
+firebase-debug.log
