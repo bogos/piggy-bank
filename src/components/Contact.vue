@@ -1,14 +1,29 @@
 <template>
-  <div class="wrapper">
-      <h1>Contact Us</h1>
-      <form @submit.prevent="sendEmail">
-         <input type="text" placeholder="Firstname" v-model="userData.firstname" /><br>
-         <input type="text" placeholder="Lastname" v-model="userData.lastname" /><br>
-         <input type="text" placeholder="Username" v-model="userData.username" /><br>
-         <input type="email" placeholder="Email" v-model="userData.email" /><br>
-         <input type="password" placeholder="Choose a password" v-model="userData.password" /><br>
-         <button>Create account</button>
-      </form>
+  <div class="container">
+     <div class="contact-container">
+        <div class="contact-container-header">
+            <h1 class="title">Contact Us!</h1>
+               <p class="sub-title"> Leave us your questions </p>
+         </div>
+            <form @submit.prevent="sendEmail" class="contact-form">
+               
+               <label> First Name </label>
+               <input type="text" v-model="userData.firstname" /><br>
+
+               <label> Last Name </label>
+               <input type="text" v-model="userData.lastname" /><br>
+
+               <label> Phone </label>
+               <input type="text" v-model="userData.username" /><br>
+
+               <label> Email </label>
+               <input type="email" v-model="userData.email" /><br>
+
+               <label> Text area </label>
+               <textarea v-model="userData.textarea"> </textarea>
+               <button>Send</button>
+            </form>
+      </div>
    </div>
 </template>
 
@@ -23,9 +38,9 @@ export default {
             userData: {
                firstname: '',
                lastname: '',
-               username: '',
+               phone: '',
                email: '',
-               password: ''
+               textarea: ''
             },
             successMessage: '',
             errorMessage: ''
@@ -40,7 +55,45 @@ export default {
     }
 }
 </script>
+<style lang="scss">
+   .contact-container {
+         padding: 0 5rem 20px 5rem; 
+   }
 
-<style>
+   .contact-container-header {
+      margin: 35px 0px;
+   }
 
+   .contact-form {
+      display:flex;
+      flex-direction: column;
+      max-width: 500px;
+
+      input, textarea, button {
+         font-family: "Gotham";
+         border: none;
+         background-color: #edeef2;
+         padding: 10px;
+      }
+
+      input, button{
+         height: 44px;
+      }
+
+      textarea{
+         height: 160px;
+      }
+
+      button {
+         margin-top: 15px;
+         background-color: darken(#edeef2, 20%);
+         font-weight: 500;
+         font-size: 1rem;
+         text-transform: uppercase;
+
+         &:hover{
+            background-color: darken(#edeef2, 40%)
+         }
+      }
+   }
 </style>
