@@ -17,9 +17,11 @@ export default new Vuex.Store({
     state:{
         account: "",
         contract: {},
-        deployedContractAddress: "0xf986f5bE8c5782cf29243329208372a2aa196e5C",
+        deployedContractAddress: "0x936402A9ad9F484164C37137fA95d5a6A3732FCc",
         isOpenModal: false,
+        isLoading: true,
         numberWallets: 0,
+        allBalance: 0,
         
         wallets: [],
         web3: {},
@@ -27,7 +29,7 @@ export default new Vuex.Store({
             id: 0,
             walletAddress: "",
             typeOperation: 0
-        }
+        },
     },
 
     getters:{
@@ -36,7 +38,11 @@ export default new Vuex.Store({
         },
         
         getAllWallets: (state) => {
-            return state.wallets;
+            return state.wallets.sort((a, b)=> b.id - a.id);
+        },
+
+        getAllBalance: (state) => {            
+          return state.allBalance;
         },
 
         getOperationType: () => {
@@ -45,12 +51,16 @@ export default new Vuex.Store({
                 WITHDRAW: 2
             };
         },
+
+        getIsLoading: (state) => {
+            return state.isLoading;
+        }
     },
 
     actions: {
 
         async setWeb3({ commit }) {
-        
+            
             let web3;
             if (window.ethereum) {
                 web3 = new Web3(window.ethereum);
@@ -70,9 +80,13 @@ export default new Vuex.Store({
         },
 
         async setContractMethod( {commit, state} ) {
-            let contract = await new state.web3.eth.Contract(PiggyManagerABI, state.deployedContractAddress);
-            console.log("SET_CONTRACT_METHOD", contract);
-            commit('SET_CONTRACT_METHOD', contract);
+            try {
+                let contract = await new state.web3.eth.Contract(PiggyManagerABI, state.deployedContractAddress);
+                console.log("SET_CONTRACT_METHOD", contract);
+                commit('SET_CONTRACT_METHOD', contract);
+            } catch(err) {
+                alert("SET_CONTRACT_METHOD", err);
+            }
         },
 
         async setAccount ({commit}) {
@@ -92,38 +106,59 @@ export default new Vuex.Store({
 
         async setNumberWallets({ commit, state }){
 
-            let response = await state.contract.methods.getNumberWallets().call();            
-            
-            console.log("SET_NUMBER_WALLETS", response);
-            commit("SET_NUMBER_WALLETS", response);
-        },
-
-        async setAllWallets ({ commit, state }) {
-
-            let wallets = [];
-            for(let i = 0; i < state.numberWallets; i++) {
-                
-                let id = i;
-                let walletAddressFunc = state.contract.methods.wallets(state.account[0], i).call();            
-                let balanceFunc = state.contract.methods.balanceWallet(i).call();
-
-                const [walletAddress, balance] = await Promise.all([walletAddressFunc, balanceFunc]);
-
-                let walletData = {
-                    id,
-                    walletAddress,
-                    balance: state.web3.utils.fromWei(`${balance}`, "ether")
-                };
-
-                wallets.push(walletData)
+            try{
+                let response = await state.contract.methods.getNumberWallets().call({from: state.account[0]});               
+                console.log("SET_NUMBER_WALLETS", response);
+                commit("SET_NUMBER_WALLETS", response);
+            } catch (err) {
+                alert("SET_NUMBER_WALLETS", err);
             }
-            console.log("SET_WALLETS", wallets);
-            commit("SET_WALLETS", wallets);
         },
 
-        async createWallet({ commit, state }) {
+        async setAllWallets ({ commit, dispatch, state }) {
 
             try {
+                dispatch("startLoading");
+                let wallets = [];
+                for(let i = 0; i < state.numberWallets; i++) {
+                    
+                    let wallet = await state.contract.methods.wallets(state.account[0], i).call({from: state.account[0]});            
+                    let balance = await state.contract.methods.balanceWallet(wallet.contractAddress).call({from: state.account[0]});
+                    
+                    let walletData = {
+                        id: wallet.id,
+                        walletAddress: wallet.contractAddress,
+                        balance: state.web3.utils.fromWei(`${balance}`, "ether")
+                    };
+                    wallets.push(walletData)
+                }
+                console.log("SET_WALLETS", wallets);
+                commit("SET_WALLETS", wallets);
+                dispatch("endLoading");
+            } catch (err) {
+                alert("SET_ALL_WALLETS", err);
+            }
+        },
+
+        async setAllBalance ({ commit, state}) {
+
+            try{
+                let sum = state.wallets
+                    .map(e => Number(e.balance))
+                    .reduce((prev, curr) => prev + curr);
+
+                console.log("SET_ALL_BALANCE", sum);
+                commit("SET_ALL_BALANCE", sum);
+            }
+            catch(err) {
+                alert("SET_ALL_BALANCE", err);
+            }
+        },
+
+        async createWallet({ commit, dispatch, state }) {
+
+            try {
+                dispatch("startLoading");
                 let wallet = await state.contract.methods.createPiggyWallet().send({from: state.account[0]})
                 .on('receipt', (receipt) => {
                         const walletInfo = {
@@ -134,16 +169,17 @@ export default new Vuex.Store({
                         commit("CREATE_WALLET", walletInfo);
                     }
                 );
-                
                 console.log("CREATE_WALLET", wallet);
-            } catch {
-                alert("Failed creating wallet");
+                dispatch("endLoading");
+            } catch (err){
+                alert("CREATE_WALLET", "Failed creating wallet", err);
             }
         },
 
         async depositEthers({ state, dispatch}, payload) {
             
             try {
+                dispatch("startLoading");
                 const {to, value} = payload;
                 let contractAddress = await new state.web3.eth.Contract(PiggyWalletABI, to.walletAddress);
                 let weiValue = state.web3.utils.toWei(`${value}`, "ether");
@@ -151,13 +187,13 @@ export default new Vuex.Store({
                 dispatch('setAllWallets');
                 console.log("DEPOSIT_ETHERS", receipt);
             } catch (err) {
-                console.log(err);
+                alert("DEPOSIT_ETHERS", err);
             }
         },
 
         async withdrawEthers({ state, dispatch }, payload) {
             try {
-                
+                dispatch("startLoading");
                 const {walletAddress, value} = payload;
                 let contractAddress = await new state.web3.eth.Contract(PiggyWalletABI, walletAddress);
                 let weiValue = state.web3.utils.toWei(`${value}`, "ether");
@@ -165,7 +201,7 @@ export default new Vuex.Store({
                 dispatch('setAllWallets');
                 console.log("WITHDRAW_ETHERS", receipt);
             } catch (err) {
-                console.log(err);
+                alert("WITHDRAW_ETHERS", err);
             }
         },
 
@@ -188,8 +224,15 @@ export default new Vuex.Store({
 
         setWalletInfo({ commit }, payload){
             commit("SET_WALLET_INFO", payload);
-        }
+        },
 
+        startLoading({ commit }) {
+            commit("START_LOADING");
+        },
+
+        endLoading({ commit }) {
+            commit("END_LOADING");
+        }
     },
 
     mutations: {
@@ -200,11 +243,12 @@ export default new Vuex.Store({
         SET_NUMBER_WALLETS: (state, numberWallets) => (state.numberWallets = numberWallets),
         CREATE_WALLET: (state, wallet) => (state.wallets.unshift(wallet)),
         SET_WALLET_INFO: (state, walletInfo) => (state.walletInfo = walletInfo),
-
+        SET_ALL_BALANCE: (state, sum) => (state.allBalance = sum),
         OPEN_MODAL: (state) => (state.isOpenModal = true),
         CLOSE_MODAL: (state) => (state.isOpenModal = false),
         SET_TYPE_MODAL: (state, payload) => (state.typeModal = payload),
-
-        SET_WALLET_ADDRESS: (state, walletAddress) => (state.selectedWalletAddres = walletAddress)
+        SET_WALLET_ADDRESS: (state, walletAddress) => (state.selectedWalletAddres = walletAddress),
+        START_LOADING: (state) => (state.isLoading = true),
+        END_LOADING: (state) => (state.isLoading = false)
     },
 });

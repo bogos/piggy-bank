@@ -8,17 +8,20 @@
             </div>
 
             <div class="wallet-header">
-                    <div class="sub-title">Create Wallet </div>
-                    <button class="create-wallet-btn" @click="createWallet"> + </button>
+                    <div class="wallet-header-info rigth-separator"> Balance: <span class="balance"> ETH {{ this.$store.state.allBalance }} </span> </div>
+                    <div class="wallet-header-info">Add Wallet 
+                        <button class="create-wallet-btn" @click="createWallet"> + </button>
+                    </div>
             </div>
+            <div v-if="getIsLoading" class="loading-img"><img src="../assets/images/loading.svg"/></div>
 
             <div class="card-container">
                 <div 
                     v-for="wallet in getAllWallets" 
                     v-bind:key="wallet.id" 
-                    :class="'card-item ' + 'card-color-'+removeZeroMod(wallet.id)"
+                    :class="'card-item ' + 'card-color-'+calculateMODColors(wallet.id)"
                 > 
-                    <div :class="'card-eth-logo ' + 'bnt-color-'+removeZeroMod(wallet.id)">
+                    <div :class="'card-eth-logo ' + 'bnt-color-'+calculateMODColors(wallet.id)">
                         <img src="../assets/images/ethereum.png"/>
                     </div>
                     <label class="card-description">Address</label>
@@ -26,9 +29,10 @@
                     <label class="card-description">Balance</label>
                     <label class="card-balance">ETH {{ wallet.balance }}</label>
                     <div class="card-buttons-container">
-                        <button @click="openModal(wallet, wallet.id, getOperationType.DEPOSIT)" :class="'card-buttons ' + 'bnt-color-'+removeZeroMod(wallet.id)"> Deposit </button>
-                        <button @click="openModal(wallet, wallet.id, getOperationType.WITHDRAW)" :class="'card-buttons ' + 'bnt-color-'+removeZeroMod(wallet.id)" > Withdraw </button>
+                        <button @click="openModal(wallet, wallet.id, getOperationType.DEPOSIT)" :class="'card-buttons ' + 'bnt-color-'+calculateMODColors(wallet.id)"> Deposit </button>
+                        <button @click="openModal(wallet, wallet.id, getOperationType.WITHDRAW)" :class="'card-buttons ' + 'bnt-color-'+calculateMODColors(wallet.id)" > Withdraw </button>
                     </div>
+                    <div v-if="getIsLoading" class="loading"></div>
                 </div>
             </div>
         </div>
@@ -50,7 +54,8 @@ export default {
             'setAccount',
             'setNumberWallets',
             'setAllWallets',
-            'createWallet'
+            'createWallet',
+            'setAllBalance'
         ]),
 
         openModal(wallet, index, type) {
@@ -62,15 +67,14 @@ export default {
             };
 
             console.log("MODAL", payload);
-
             this.$store.dispatch("openModal");
             this.$store.dispatch("setWalletInfo", payload);
         },
         
         // Remove, use Id from card to evaluate the color or consider select and save a card color.
-        removeZeroMod(index) {
+        calculateMODColors(index) {
             const numCardColors = 4;
-            return (((index + numCardColors - 1))  % numCardColors + 1);
+            return (index % numCardColors);
         }
     },
 
@@ -78,7 +82,8 @@ export default {
         ...mapGetters([
             'getAccount',
             'getAllWallets',
-            'getOperationType'
+            'getOperationType',
+            'getIsLoading'
         ]),
     },
 
@@ -88,6 +93,7 @@ export default {
         await this.setAccount();
         await this.setNumberWallets();
         await this.setAllWallets();
+        await this.setAllBalance();
     },
 }
 </script>
@@ -109,7 +115,7 @@ export default {
     $card-button-color-4: #1cd389;
     
     .wallet-container {
-        padding: 0 5rem 20px 5rem;
+        padding: 0 1rem 20px 1rem;
     }
     
     .wallet-welcome {
@@ -130,10 +136,34 @@ export default {
     }
 
     .wallet-header {
-        align-items: center;
         display: flex;
+        flex-direction: row;
         margin: 40px 0;
+        align-items: center;
     }
+
+    .wallet-header-info {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #787878;
+        font-size: 1.3rem;
+        font-weight: 300;
+    }
+
+    .balance {
+        display: inline;
+        font-size: 32px;
+        margin-left: 15px;
+        font-weight: 500;
+    }
+
+    .rigth-separator {
+        margin-right: 30px;
+        border-right: 2px solid #e0e4e8;
+        padding-right: 30px;
+    }
+
 
     .create-wallet-btn {
         cursor: pointer;
@@ -158,44 +188,44 @@ export default {
         grid-gap: 2.6rem;
     }
 
-    .card-color-1{
+    .card-color-0{
         background-color: $card-color-1;
     }
 
-    .card-color-2{
+    .card-color-1{
         background-color: $card-color-2;
     }
 
-    .card-color-3{
+    .card-color-2{
         background-color: $card-color-3;
     }
 
-    .card-color-4{
+    .card-color-3{
         background-color: $card-color-4;
     }
 
-    .bnt-color-1{
+    .bnt-color-0{
         background-color: $card-button-color-1;
         &:hover {
             background-color: darken($card-button-color-1, 20%)
         }
     }
 
-    .bnt-color-2{
+    .bnt-color-1{
         background-color: $card-button-color-2;
         &:hover {
             background-color: darken($card-button-color-2, 20%)
         }
     }
 
-    .bnt-color-3{
+    .bnt-color-2{
         background-color: $card-button-color-3;
         &:hover {
             background-color: darken($card-button-color-3, 20%)
         }
     }
 
-    .bnt-color-4{
+    .bnt-color-3{
         background-color: $card-button-color-4;
         
         &:hover {
@@ -206,10 +236,11 @@ export default {
     .card-item {
         padding: 1.2rem;
         border-radius: 15px;
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
         color: $white-color;
         display:flex;
         flex-direction: column;
-        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+        position: relative;
         transition: 0.3s;
 
         &:hover{
@@ -271,6 +302,36 @@ export default {
         &:last-child {
          margin-left:10px   
         }
+    }
+
+    .loading-img {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 30px;
+
+        img {
+            width: 4rem;
+            animation:spin 4s linear infinite;
+        }
+    }
+
+    @keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
+
+
+
+    .loading {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-color: black;
+        opacity: 0.2;
+        left: 0;
+        top: 0;
+        border-radius: 15px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 3rem;
     }
 
     @media (max-width: 500px) {
