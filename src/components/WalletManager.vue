@@ -21,10 +21,10 @@
                     <div :class="'card-eth-logo ' + 'bnt-color-'+removeZeroMod(wallet.id)">
                         <img src="../assets/images/ethereum.png"/>
                     </div>
-                    <div class="card-description">Address</div>
-                    <div class="card-address">{{ wallet.walletAddress }}</div>
-                    <div class="card-description">Balance</div>
-                    <div class="card-balance">ETH {{ wallet.balance }}</div>
+                    <label class="card-description">Address</label>
+                    <label class="card-address">{{ wallet.walletAddress }}</label>
+                    <label class="card-description">Balance</label>
+                    <label class="card-balance">ETH {{ wallet.balance }}</label>
                     <div class="card-buttons-container">
                         <button @click="openModal(wallet, wallet.id, getOperationType.DEPOSIT)" :class="'card-buttons ' + 'bnt-color-'+removeZeroMod(wallet.id)"> Deposit </button>
                         <button @click="openModal(wallet, wallet.id, getOperationType.WITHDRAW)" :class="'card-buttons ' + 'bnt-color-'+removeZeroMod(wallet.id)" > Withdraw </button>
@@ -233,13 +233,13 @@ export default {
     }
 
     .card-description {
-        font-size: 14px;
+        font-size: 18px;
         font-weight: 300;
         margin: 25px 0px 5px 0px;
     }
 
     .card-address {
-        font-size: 17px;
+        font-size: 19px;
         font-weight: 400;
     }
 
