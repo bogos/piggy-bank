@@ -44,6 +44,8 @@
                <button type="submit" :disabled="invalid">Send</button>
             </form>
          </ValidationObserver>
+         <span v-if="isLoading"> Sending... </span>
+         <span v-if="emailSuccess"> {{ message }} </span>
 
       </div>
    </div>
@@ -65,15 +67,30 @@ export default {
                email: '',
                textarea: '',
             },
-            successMessage: '',
-            errorMessage: ''
+            isLoading:false,
+            emailSuccess:false,
+            message: ""
          }
     },
     methods: {
         async sendEmail() {
+
+           // Need to be send from an action || optimize loading
+
             let sendEmailNotification ="https://us-central1-dsbuilder-50bf4.cloudfunctions.net/sendEmailNotification";
+            this.emailSuccess = false;
+            this.isLoading = true;
             const response = await axios.post(sendEmailNotification, this.userData);
             console.log("RESPONSE", response);
+            this.isLoading = false;
+            this.emailSuccess = true;
+
+            if(response.status === 200 ){
+               this.message = "Successfully sent!" 
+            } else{
+               this.message = "Oh no, a problem occurred!";
+            }
+
         }
     },
     components: {
