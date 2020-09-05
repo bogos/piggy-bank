@@ -5,52 +5,67 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contr
 
 contract PiggyWalletManager is Ownable{
     
-    mapping(address => PiggyWallet[]) public wallets;
+    struct PiggyWalletInfo {
+        uint id;
+        address contractAddress;
+    }
+
+    mapping(address => PiggyWalletInfo[]) public wallets;
     mapping(address => uint256) public numAddressInWallet;
     
     event WalletCreated(address _address);
-    event EthersMoved(address _address, uint value)
+    event EthersMoved(address _address, uint value);
     
-    function createPiggyWallet() external {        
-        
+    function createPiggyWallet() external {
         PiggyWallet walletAddress = new PiggyWallet();
-        wallets[msg.sender].push(walletAddress);
-        
-        // Move the ownership to the msg.sender || Also could be done with msg.owner
-        wallets[msg.sender][numAddressInWallet[msg.sender]].transferOwnership(msg.sender);
         
         numAddressInWallet[msg.sender]++;
+        PiggyWalletInfo memory walletInfo;
+        walletInfo.id = numAddressInWallet[msg.sender];
+        walletInfo.contractAddress = address(walletAddress);
+        
+        wallets[msg.sender].push(walletInfo);
+        
+        // Move the ownership to the msg.sender || Also could be done with msg.owner
+        walletAddress.transferOwnership(msg.sender);
         
         emit WalletCreated(address(walletAddress));
     }
     
-    function balanceWallet(uint _walletId) external view returns (uint) {
-        return wallets[msg.sender][_walletId].balanceOf();
+    function balanceWallet(address _walletAddress) external view returns (uint) {
+        PiggyWallet wallet = PiggyWallet(_walletAddress);
+        return wallet.balanceOf();
     }
 
     function getNumberWallets() external view returns (uint) {
         return wallets[msg.sender].length;
     }
     
-    function moveEthers(uint _walletId, address payable _address, uint _value) external {
-        wallets[msg.sender][_walletId].sendEther(_address, _value);
+    function moveEthers(address _walletAddress, address payable _address, uint _value) external {
+        PiggyWallet wallet = PiggyWallet(_walletAddress);
+        wallet.sendEther(_address, _value);
+        
+        emit EthersMoved(_address, _value);
     }
 }
 
 contract PiggyWallet is Ownable {
     
-    event DepositReceived(indexed _address, indexed _value);
-
+    event DepositReceived(address indexed _address, uint indexed _value);
+    event EthersMoved(address _address, uint _value);
+    
     function deposit() external payable {
-        emit(msg.sender, msg.value);
+        emit DepositReceived(msg.sender, msg.value);
     }
 
     function balanceOf() external view returns (uint) {
         return address(this).balance;
     }
     
-    function sendEther(address payable recipient, uint value) onlyOwner external {
-        require(value < address(this).balance && value > 0, "Not enough funds");
-        recipient.transfer(value);
+    function sendEther(address payable _recipient, uint _value) onlyOwner external {
+        require(_value < address(this).balance && _value > 0, "Not enough funds");
+        _recipient.transfer(_value);
+        
+        emit EthersMoved(_recipient,_value);
     }
 }
