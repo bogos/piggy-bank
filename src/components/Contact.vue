@@ -5,30 +5,53 @@
             <h1 class="title">Contact Us!</h1>
                <p class="sub-title"> Leave us your questions </p>
          </div>
+         <ValidationObserver v-slot="{ invalid }">
             <form @submit.prevent="sendEmail" class="contact-form">
                
                <label> First Name </label>
-               <input type="text" v-model="userData.firstname" /><br>
+               <ValidationProvider name="First Name" rules="required|alpha" v-slot="{ errors }">
+                  <input type="text" v-model="userData.firstname" /><br>
+                  <span class="error">{{ errors[0] }}</span>
+               </ValidationProvider>
+
 
                <label> Last Name </label>
-               <input type="text" v-model="userData.lastname" /><br>
+               <ValidationProvider name="Last Name" rules="required|alpha" v-slot="{ errors }">
+                  <input type="text" v-model="userData.lastname" /><br>
+                  <span class="error">{{ errors[0] }}</span>
+               </ValidationProvider>
+
 
                <label> Phone </label>
-               <input type="text" v-model="userData.username" /><br>
+               <ValidationProvider name="Phone" rules="required|numeric" v-slot="{ errors }">
+                  <input type="text" v-model="userData.phone" /><br>
+                    <span class="error">{{ errors[0] }}</span>
+               </ValidationProvider>
+
 
                <label> Email </label>
-               <input type="email" v-model="userData.email" /><br>
+               <ValidationProvider name="Email" rules="required|email" v-slot="{ errors }">
+                  <input type="email" v-model="userData.email" /><br>
+                     <span class="error">{{ errors[0] }}</span>
+                </ValidationProvider>
 
                <label> Text area </label>
-               <textarea v-model="userData.textarea"> </textarea>
-               <button>Send</button>
+               <ValidationProvider name="Text area" rules="required|alpha_num" v-slot="{ errors }">
+                  <textarea v-model="userData.textarea"> </textarea>
+                  <span class="error">{{ errors[0] }}</span>
+               </ValidationProvider>
+
+               <button type="submit" :disabled="invalid">Send</button>
             </form>
+         </ValidationObserver>
+
       </div>
    </div>
 </template>
 
 <script>
 import axios from 'axios';
+import { ValidationProvider, ValidationObserver } from 'vee-validate';
 
 export default {
     name: 'contact',
@@ -40,7 +63,7 @@ export default {
                lastname: '',
                phone: '',
                email: '',
-               textarea: ''
+               textarea: '',
             },
             successMessage: '',
             errorMessage: ''
@@ -52,10 +75,22 @@ export default {
             const response = await axios.post(sendEmailNotification, this.userData);
             console.log("RESPONSE", response);
         }
+    },
+    components: {
+           ValidationProvider,
+           ValidationObserver
     }
 }
 </script>
 <style lang="scss">
+   span {
+      display: block;
+   }
+
+   .error {
+      color: red;
+      font-size: 14px;
+   }
    .contact-container {
          padding: 0 5rem 20px 5rem; 
    }
@@ -69,7 +104,14 @@ export default {
       flex-direction: column;
       max-width: 500px;
 
+      label{
+         font-weight: 300;
+         font-size: 18px;
+         margin-top: 20px;
+      }
+
       input, textarea, button {
+         width: 100%;
          font-family: "Gotham";
          border: none;
          background-color: #edeef2;
@@ -91,7 +133,7 @@ export default {
          font-size: 1rem;
          text-transform: uppercase;
 
-         &:hover{
+         &:hover:not([disabled="disabled"]){
             background-color: darken(#edeef2, 40%)
          }
       }

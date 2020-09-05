@@ -54,12 +54,9 @@ export default new Vuex.Store({
             let web3;
             if (window.ethereum) {
                 web3 = new Web3(window.ethereum);
-
                 let enabled = await window.ethereum.enable();
-        
                 console.log(enabled);
-                console.log(web3);
-
+                
             } else if (window.web3) {
                 web3 = new Web3(window.web3.currentProvider);
             } else {

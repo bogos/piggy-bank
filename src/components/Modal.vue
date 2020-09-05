@@ -10,7 +10,7 @@
 
                     <h1 style="text-align:center"> Deposit in my Wallet </h1>
                     <label class="modal-card-description">Wallet Address</label>
-                    <div class="modal-card-address"> {{  this.$store.state.walletInfo.walletAddress.walletAddress }}</div>
+                    <div class="modal-card-address"> {{ this.$store.state.walletInfo.walletAddress.walletAddress }}</div>
 
                     <label class="modal-card-description">Amount </label>
                     <input type="text" class="modal-card-input"  v-model.number="value" @keypress="onlyNumber"/>
